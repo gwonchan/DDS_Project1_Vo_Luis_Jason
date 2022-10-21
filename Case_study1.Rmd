@@ -1,0 +1,303 @@
+
+###1.	How many breweries are present in each state
+
+
+
+```{r}
+
+hello_breweries = read.csv("Breweries.csv")
+hello_beers = read.csv("Beers.csv")
+
+#by states
+hello1=table(hello_breweries$State)
+hello1
+plot(hello1,main = "Breweries by state",xlab = "States", ylab = "number of Breweries", ylim=c(0,60), cex.axis = 1, las=2)
+```
+
+
+
+##2.	Merge beer data with the breweries data. Print the first 6 observations and the last six observations to check the merged file.  (RMD only, this does not need to be included in the presentation or the deck.)
+
+2-1.first 6 observations
+```{r}
+hello_merge = merge(hello_breweries,hello_beers,by.x = "Brew_ID", by.y = "Brewery_id")
+head(hello_merge)
+```
+
+
+2-2.last six observations
+```{r}
+tail(hello_merge)
+```
+##3.	Address the missing values in each column.
+```{r}
+hello_NA = hello_merge[!complete.cases(hello_merge),]
+head(hello_NA)
+library(naniar)
+gg_miss_var(hello_merge)
+```
+
+There are over 1000 missing values in IBU, almost 100 in ABV, and 5 in Style. We impute those missing values with median for our KNN prediction model.
+
+
+
+##4.	Compute the median alcohol content and international bitterness unit for each state. Plot a bar chart to compare.
+```{r}
+library(dplyr)
+hello1 <- hello_merge %>% group_by(State) %>% summarize(medianABV = median(ABV,na.rm = TRUE), count = n()) %>% arrange(medianABV)
+head(hello1)
+barplot(hello1$medianABV, names.arg = hello1$State, las=2 ,main = "Median ABV by state",xlab = "States", ylab = "Median ABV")
+
+hello2 <- hello_merge %>% group_by(State) %>% summarize(medianIBU = median(IBU,na.rm = TRUE), count = n()) %>% arrange(medianIBU)
+print(hello2)
+barplot(hello2$medianIBU, names.arg = hello2$State, las=2 ,main = "Median IBU by state",xlab = "States", ylab = "Median IBU")
+```
+
+##5.	Which state has the maximum alcoholic (ABV) beer? Which state has the most bitter (IBU) beer?
+```{r}
+hello_ABV <- hello_merge %>% group_by(State)%>%summarize(max_alc=max(ABV,na.rm=TRUE)) %>% arrange(desc(max_alc))
+hello_IBU <- hello_merge %>% group_by(State)%>%summarize(max_ibu=max(IBU,na.rm=TRUE)) %>% arrange(desc(max_ibu))
+head(hello_ABV)
+head(hello_IBU)
+```
+Colorado has the maximum ABV.  
+Oregon has the maximum IBU.
+
+
+6.	Comment on the summary statistics and distribution of the ABV variable.
+```{r}
+summary(hello_merge$ABV)
+hist(hello_merge$ABV,main = "Histogram of ABV",xlab = "ABV", ylab = "Count")
+```
+
+The ABV variable has a mode around .5, is right skewed, and has a range of about .11.  
+
+
+7.	Is there an apparent relationship between the bitterness of the beer and its alcoholic content? Draw a scatter plot.  Make your best judgment of a relationship and EXPLAIN your answer.
+```{r}
+library(ggplot2)
+scatter.smooth(x=hello_merge$ABV, y=hello_merge$IBU, main = "Mild positive linear relationship",xlab = "ABV", ylab = "IBU", col="blue")
+```
+
+This data shows mild positive linear relationship between bitterness and alcoholic content(3rd degree polynomial). Most of Beer bitterness comes from hops.
+
+
+8.	Budweiser would also like to investigate the difference with respect to IBU and ABV between IPAs (India Pale Ales) and other types of Ale (any beer with “Ale” in its name other than IPA).  You decide to use KNN classification to investigate this relationship.  Provide statistical evidence one way or the other. You can of course assume your audience is comfortable with percentages … KNN is very easy to understand conceptually. 
+In addition, while you have decided to use KNN to investigate this relationship (KNN is required) you may also feel free to supplement your response to this question with any other methods or techniques you have learned.  Creativity and alternative solutions are always encouraged.  
+```{r, echo=FALSE, message=FALSE, results="hide"}
+library(XML) #xml_Parse
+library(dplyr)
+library(tidyr)
+library(stringi)
+library(rvest) #html_table, html_node
+library(ggplot2)
+library(RCurl) #getURL
+library(class)
+library(caret)
+library(e1071)
+#install.packages("Hmisc")
+library(Hmisc)
+#install.packages("stringr")     # Install & load stringr package
+library("stringr")
+library(naniar)
+
+#classfy IPAs or not, using IBU and ABV values.
+#make new column as IPAs and the values will be 1 or 0. When the Style has "IPA", the value will be 1. nor 0.
+#hello_IPA <- 1*str_detect(hello_merge$Style, "IPA")
+hello_IPAs = ifelse(str_detect(hello_merge$Style,"IPA")==TRUE,"IPA",ifelse(str_detect(hello_merge$Style,"Ale")==TRUE,"ALE","Other"))
+hello_merge$Beer_type <- hello_IPAs
+
+#median IPA
+hello_filter1=filter(hello_merge, Beer_type == "IPA")
+median(hello_filter1$ABV[which(!is.na(hello_filter1$ABV))])
+median(hello_filter1$IBU[which(!is.na(hello_filter1$IBU))])
+
+#median Ale
+hello_filter2=filter(hello_merge, Beer_type == "ALE")
+median(hello_filter2$ABV[which(!is.na(hello_filter2$ABV))])
+median(hello_filter2$IBU[which(!is.na(hello_filter2$IBU))])
+
+#median no IPA
+hello_filter3=filter(hello_merge, Beer_type == "Other")
+median(hello_filter3$ABV[which(!is.na(hello_filter3$ABV))])
+median(hello_filter3$IBU[which(!is.na(hello_filter3$IBU))])
+
+
+#impute missing values with median
+hello_impute <- hello_merge
+hello_impute$IBU <- impute(hello_impute$IBU, median)
+hello_impute$ABV <- impute(hello_impute$ABV, median)
+hello_impute = hello_impute[complete.cases(hello_impute),]
+
+#scaling
+hello_scale = hello_impute
+hello_scale$IBU = scale(hello_impute$IBU)
+hello_scale$ABV = scale(hello_impute$ABV)
+hello_scale %>% ggplot(aes(x = ABV, y = IBU, color=Beer_type)) + 
+geom_point() +
+stat_ellipse()
+```
+
+In our scatter plot above, we standardize our continuous variables to properly scale.
+
+
+
+```{r}
+#70/30 training/
+# Loop for many k and the average of many training / test partition
+
+set.seed(100)
+iterations = 10
+numks = 20
+splitPerc = .70
+
+masterAcc = matrix(nrow = iterations, ncol = numks)
+
+
+for(j in 1:iterations)
+{
+  trainIndices = sample(1:dim(hello_scale)[1],round(splitPerc * dim(hello_scale)[1]))
+  train = hello_scale[trainIndices,]
+  test = hello_scale[-trainIndices,]
+  for(i in 1:numks)
+  {
+    classifications = knn(train[,c(7,8)],test[,c(7,8)],train$Beer_type, prob = TRUE, k = i)
+    table(classifications,test$Beer_type)
+    CM = confusionMatrix(table(classifications,test$Beer_type))
+    masterAcc[j,i] = CM$overall[1]
+  }
+  
+}
+
+MeanAcc = colMeans(masterAcc)
+
+plot(seq(1,numks,1),MeanAcc, type = "l")
+
+which.max(MeanAcc)
+max(MeanAcc)
+```
+K=5 has maximum accuracy.
+
+```{r,echo=FALSE}
+## Accuracy was used to select the optimal model using the largest value.
+## The final value used for the model was k = 20.
+classifications = knn(train[,c(7,8)],test[,c(7,8)],train$Beer_type, prob = TRUE, k = 5)
+CM = confusionMatrix(table(classifications,test$Beer_type))
+CM
+```
+We ran another KNN model with K=5 and the results are above. 
+
+
+```{r}
+#decision boundary
+prob1 <- attr(classifications, "prob")
+px1 <- test$ABV
+px2 <- test$IBU
+
+
+mat = matrix(, nrow = 723, ncol = 3)
+mat[,1] <- px1
+mat[,2] <- px2
+mat[,3] <- classifications
+
+dff <- data.frame(mat)
+colnames(dff) <- c('ABV', 'IBU', 'Predicted_Beer_Type')
+
+ggplot(dff)+geom_point(aes(x = ABV, y = IBU, col=Predicted_Beer_Type))+
+geom_contour(aes(x = ABV, y = IBU, z = Predicted_Beer_Type)) +
+ggtitle("Predicted Beer Type (ALE=1, IPA=2, Others=3)")
+#add title and legend
+```
+
+This is prediction results of our KNN model using test data.
+
+```{r}
+##market data
+#Dogfish Head 60 Minute IPA ibu 60. Abv 0.060
+#KNN prediction: IPA
+biterness = 60
+alchol = 0.06
+
+#scale
+scaled_center_biterness = 39.49668
+scaled_scale_biterness = 20.17576
+scaled_center_alc = 0.05967635
+scaled_scale_alc = 0.01337969
+
+y=(biterness-scaled_center_biterness)/scaled_scale_biterness
+x=(alchol-scaled_center_alc)/scaled_scale_alc
+test1= c(x,y)
+knn(train[,c(7,8)],test1,train$Beer_type, prob = TRUE, k = 5)
+
+```
+The Dogfish head 60 minute IPA is classified as IPA of 75% probability.
+
+```{r}
+#sierra nevada pale ale ibu 38 abv 0.056
+#KNN prediction: ale
+biterness = 38
+alchol = 0.056
+
+#scale
+scaled_center_biterness = 39.49668
+scaled_scale_biterness = 20.17576
+scaled_center_alc = 0.05967635
+scaled_scale_alc = 0.01337969
+
+y=(biterness-scaled_center_biterness)/scaled_scale_biterness
+x=(alchol-scaled_center_alc)/scaled_scale_alc
+test1= c(x,y)
+knn(train[,c(7,8)],test1,train$Beer_type, prob = TRUE, k = 5)
+```
+The Sierra nevada pale ale is classified as ALE of 85% probability.
+
+```{r}
+#Budweiser ibu 13, abv 0.05
+#KNN prediction: larger
+biterness = 13
+alchol = 0.05
+
+#scale
+scaled_center_biterness = 39.49668
+scaled_scale_biterness = 20.17576
+scaled_center_alc = 0.05967635
+scaled_scale_alc = 0.01337969
+
+y=(biterness-scaled_center_biterness)/scaled_scale_biterness
+x=(alchol-scaled_center_alc)/scaled_scale_alc
+test1= c(x,y)
+knn(train[,c(7,8)],test1,train$Beer_type, prob = TRUE, k = 5)
+```
+The Budweisser is classified as others of 60% probability.
+
+
+```{r}
+##market share, beers by breweries
+freq_table=table(hello_merge$Brew_ID)
+hello_market <- hello_merge %>% group_by(Brew_ID)%>%tally(sort = TRUE)
+#add state on column
+hello_market <- as.data.frame(hello_market)
+#df1 = hello_breweries %>% select(Name,State)
+df2 = merge(hello_market,hello_breweries,by.x = "Brew_ID")%>% arrange(desc(n))
+head(df2)
+```
+The breweries who has most beers is Brewery Vivant in MI. The Sun King Brewing Company in IN and Oskar Blues Brewery in CO is 2nd and 3rd.
+
+```{r}
+#which is the best state to sell IPA?
+#what is the best, optimized ABV and IBU in Texas market?
+# texas beers abv and ibu
+hello_texas=filter(hello_merge, grepl('TX', State))
+hello_texas %>% ggplot(aes(x = ABV, y = IBU, color=Beer_type)) + 
+geom_point() + ggtitle("Beers in Texas") +
+stat_ellipse()
+```
+
+   
+Summary & Conclusion
+In this project, we have analyzed the alcohol contents(ABV) and bitterness(IBU) of craft beers in the breweries of United States. Moreover, we introduced the classification model of beer types using ABV and IBU values and verified with beer samples in the market including Budweiser. Additionally, top 3 breweries suggested for the Budweiser craft partners. 
+
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
