@@ -1,7 +1,7 @@
 # Case Study 01 - Beers and Breweries - Budweiser
 
-## Introduction  
-We will be taking the Beers and Breweries datasets and perform an EDA and KNN model testing. Our audience is the CEO and CFO of Budweiser. We will be finding any relationships between ABV and IBU and we will be answering 9 main questions.
+## Introduction and Purpose
+In this project, we will analyze the alcohol contents(ABV) and bitterness(IBU) of craft beers in the breweries of United States. We will perform an EDA and introduce the KNN classification model of beer types using ABV and IBU values and verified with beer samples in the market including Budweiser using R. Additionally, we will be analyzing the top 3 breweries in the United States, and finding the average ABV and IBU of those breweries. As we use the average ABV and IBU values, we will address to Budweiser on what is the best type of alcholic drink should Budweiser produce in Texas, based on our KNN model. This assumes that we are talking to Budweiser in Texas, and that they are trying to produce a beer in Texas. 
 
 ## Datasets
 The Beers dataset contains a list of 2410 US craft beers and Breweries dataset contains 558 US breweries. The datasets descriptions are as follows. We will be using R to perform statistical analysis.
@@ -39,7 +39,7 @@ State: U.S. State where the brewery is located
 4. Codebook  
 
 ## Conclusion
-
+In our data analysis, we have analyzed the datasets of Brew and Breweries focused on the alcohol contents(ABV) and bitterness(IBU) in the United States. In our KNN model, we decided to include our N/A using the impute functions. We chose the KNN model because of the inexpensiveness, popularity, and effectiveness with high accuracy. We introduced the classification model of beer types using ABV and IBU values and verified with beer samples in the market including Budweiser. We suggested in making IPAs for Budweiser because we use the average IBU and ABV values in our KNN model to predict IPA. We noticed that there could be a bias in our model. The top three brewberies could possibly make more IPAs. 
 
 ## Credit (Project Members)
 Luis Garcia  
