@@ -1,4 +1,6 @@
-# Case Study 01 - Beers and Breweries
+# Case Study 01 - Beers and Breweries - Budweiser
+
+## Introduction  
 We will be taking the Beers and Breweries datasets and perform an EDA and KNN model testing. Our audience is the CEO and CFO of Budweiser. We will be finding any relationships between ABV and IBU and we will be answering 9 main questions.
 
 ## Datasets
@@ -28,12 +30,15 @@ State: U.S. State where the brewery is located
 6.	Comment on the summary statistics and distribution of the ABV variable.  
 7.	Is there an apparent relationship between the bitterness of the beer and its alcoholic content?  
 8.	Budweiser would also like to investigate the difference with respect to IBU and ABV between IPAs and other types of Ale.   
+9.  If Budweiser was to release a type of alcoholic drink for Texas, what would be the best type of drink based on our KNN model and market analysis? We are first going to find the Market Share Analysis based on the total number of beers produced to find the average ABV and IBU values of the top three breweries, then run our KNN model to determine the type of beer based on that ABV and IBU values for the Texas market. 
 
 ## Table of Contents
-1. Beers and Breweries dataset  
+1. Beers and Breweries Dataset  
 2. RMD file  
 3. Knit html file  
 4. Codebook  
+
+## Conclusion
 
 
 ## Credit (Project Members)
