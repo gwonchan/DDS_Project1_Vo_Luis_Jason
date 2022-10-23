@@ -39,7 +39,7 @@ State: U.S. State where the brewery is located
 4. Codebook  
 
 ## Conclusion
-In our data analysis, we have analyzed the datasets of Brew and Breweries focused on the alcohol contents(ABV) and bitterness(IBU) in the United States. In our KNN model, we decided to include our N/A using the impute functions. We chose the KNN model because of the inexpensiveness, popularity, and effectiveness with high accuracy. We introduced the classification model of beer types using ABV and IBU values and verified with beer samples in the market including Budweiser. We suggested in making IPAs for Budweiser because we use the average IBU and ABV values in our KNN model to predict IPA. We noticed that there could be a bias in our model. The top three brewberies could possibly make more IPAs. 
+In our data analysis, we have analyzed the datasets of Brew and Breweries focused on the alcohol contents(ABV) and bitterness(IBU) in the United States. In our KNN model, we decided to include our N/A using the impute functions. We chose the KNN model because of the inexpensiveness, popularity, and effectiveness with high accuracy. We introduced the classification model of beer types using ABV and IBU values and verified with beer samples in the market including Budweiser. We suggested in making IPAs for Budweiser because we use the average IBU and ABV values in our KNN model to predict IPA. We noticed that there could be a bias in our model. The top three breweries could possibly make more IPAs. 
 
 ## Credit (Project Members)
 Luis Garcia  
